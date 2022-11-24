@@ -12,7 +12,7 @@
 
 extern crate alloc;
 
-//use crate::c_str::CStr;
+use crate::c_str::{to_c_str_vec, CStr};
 use crate::path::{Path, PathBuf};
 use crate::syscalls::*;
 use crate::sysno::*;
@@ -857,26 +857,25 @@ pub unsafe fn eventfd2(count: u32, flags: i32) -> Result<i32, Errno> {
 
 /// Execute a new program.
 ///
-/// TODO(Shaohua): type of argv and env will be changed.
 /// And return value might be changed too.
 ///
 /// # Example
 ///
 /// ```
-/// let args = [""];
-/// let env = [""];
+/// let args = ["-l", "/"];
+/// let env = ["LANG=en_US.UTF-8"];
 /// let ret = unsafe { nc::execve("/bin/ls", &args, &env) };
 /// assert!(ret.is_ok());
 /// ```
-pub unsafe fn execve<P: AsRef<Path>>(
+pub unsafe fn execve<P: AsRef<Path>, S: AsRef<CStr>>(
     filename: P,
-    argv: &[&str],
-    env: &[&str],
+    argv: &[S],
+    env: &[S],
 ) -> Result<(), Errno> {
     let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let argv_ptr = argv.as_ptr() as usize;
-    let env_ptr = env.as_ptr() as usize;
+    let argv_ptr = to_c_str_vec(argv).as_ptr() as usize;
+    let env_ptr = to_c_str_vec(env).as_ptr() as usize;
     syscall3(SYS_EXECVE, filename_ptr, argv_ptr, env_ptr).map(drop)
 }
 
@@ -885,27 +884,25 @@ pub unsafe fn execve<P: AsRef<Path>>(
 /// # Example
 ///
 /// ```
-/// let args = [""];
-/// let env = [""];
+/// let args = ["-l", "/"];
+/// let env = ["LANG=en_US.UTF-8"];
 /// let ret = unsafe { nc::execveat(nc::AT_FDCWD, "/bin/ls", &args, &env, 0) };
 /// assert!(ret.is_ok());
 /// ```
-pub unsafe fn execveat<P: AsRef<Path>>(
+pub unsafe fn execveat<P: AsRef<Path>, S: AsRef<CStr>>(
     fd: i32,
     filename: P,
-    argv: &[&str],
-    env: &[&str],
+    argv: &[S],
+    env: &[S],
     flags: i32,
 ) -> Result<(), Errno> {
-    // TODO(Shaohua): type of argv and env will be changed.
     // And return value might be changed too.
 
-    // FIXME(Shaohua): Convert into CString first.
     let fd = fd as usize;
     let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let argv_ptr = argv.as_ptr() as usize;
-    let env_ptr = env.as_ptr() as usize;
+    let argv_ptr = to_c_str_vec(argv).as_ptr() as usize;
+    let env_ptr = to_c_str_vec(env).as_ptr() as usize;
     let flags = flags as usize;
     syscall5(SYS_EXECVEAT, fd, filename_ptr, argv_ptr, env_ptr, flags).map(drop)
 }

@@ -1,24 +1,23 @@
 /// Execute a new program.
 ///
-/// TODO(Shaohua): type of argv and env will be changed.
 /// And return value might be changed too.
 ///
 /// # Example
 ///
 /// ```
-/// let args = [""];
-/// let env = [""];
+/// let args = ["-l", "/"];
+/// let env = ["LANG=en_US.UTF-8"];
 /// let ret = unsafe { nc::execve("/bin/ls", &args, &env) };
 /// assert!(ret.is_ok());
 /// ```
-pub unsafe fn execve<P: AsRef<Path>>(
+pub unsafe fn execve<P: AsRef<Path>, S: AsRef<CStr>>(
     filename: P,
-    argv: &[&str],
-    env: &[&str],
+    argv: &[S],
+    env: &[S],
 ) -> Result<(), Errno> {
     let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let argv_ptr = argv.as_ptr() as usize;
-    let env_ptr = env.as_ptr() as usize;
+    let argv_ptr = to_c_str_vec(argv).as_ptr() as usize;
+    let env_ptr = to_c_str_vec(env).as_ptr() as usize;
     syscall3(SYS_EXECVE, filename_ptr, argv_ptr, env_ptr).map(drop)
 }
