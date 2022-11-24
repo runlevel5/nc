@@ -130,16 +130,24 @@
     clippy::pedantic
 )]
 #![allow(dead_code)]
-#![cfg_attr(not(feature = "std"), no_std)]
 
-#[macro_use]
 extern crate alloc;
 
 #[cfg(test)]
 extern crate std;
 
+#[cfg(not(feature = "std"))]
 pub mod c_str;
+#[cfg(not(feature = "std"))]
 pub mod path;
+
+#[cfg(feature = "std")]
+#[path = "std_c_str.rs"]
+pub mod c_str;
+#[cfg(feature = "std")]
+#[path = "std_path.rs"]
+pub mod path;
+
 pub mod syscalls;
 pub use syscalls::Errno;
 
