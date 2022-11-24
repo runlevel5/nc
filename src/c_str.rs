@@ -2,6 +2,12 @@
 // Use of this source is governed by Apache-2.0 License that can be found
 // in the LICENSE file.
 
+//! This mod is migrated from `std::ffi::CString` in order to support `no_std` feature.
+//!
+//! Note that `CStr` is moved from `std` intto `core` crate and
+//! `CString` is moved into `alloc` in Rust 1.64.0.
+//! This mod is kept to be compatible with rustc 1.46 and will be removed in middle of 2024.
+
 extern crate alloc;
 extern crate core;
 
@@ -12,25 +18,6 @@ use core::fmt::Write;
 use core::mem;
 use core::ops;
 use core::ptr;
-
-/// Calculate the length of a string.
-///
-/// ```
-/// use nc::c_str::strlen;
-/// let buf = &[b'h', b'e', b'l', b'l', b'o', 0];
-/// let l = strlen(buf.as_ptr() as usize, buf.len());
-/// assert_eq!(l, 5);
-/// ```
-#[must_use]
-pub fn strlen(buf: usize, len: usize) -> usize {
-    for i in 0..len {
-        let chr: u8 = unsafe { *((buf + i) as *const u8) };
-        if chr == 0 {
-            return i;
-        }
-    }
-    len
-}
 
 pub struct CString {
     inner: Box<[u8]>,
