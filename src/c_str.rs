@@ -12,6 +12,7 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::fmt;
 use core::fmt::Write;
+use core::iter::once;
 use core::mem;
 use core::ops;
 use core::ptr;
@@ -112,6 +113,30 @@ impl CString {
         let _nul = vec.pop();
         vec
     }
+
+    #[must_use]
+    pub unsafe fn from_vec_with_nul_unchecked(v: Vec<u8>) -> Self {
+        unsafe { Self::_from_vec_with_nul_unchecked(v) }
+    }
+
+    unsafe fn _from_vec_with_nul_unchecked(v: Vec<u8>) -> Self {
+        Self {
+            inner: v.into_boxed_slice(),
+        }
+    }
+
+    #[must_use]
+    pub unsafe fn from_vec_unchecked(v: Vec<u8>) -> Self {
+        unsafe { Self::_from_vec_unchecked(v) }
+    }
+
+    unsafe fn _from_vec_unchecked(mut v: Vec<u8>) -> Self {
+        v.reserve_exact(1);
+        v.push(0);
+        Self {
+            inner: v.into_boxed_slice(),
+        }
+    }
 }
 
 impl CStr {
@@ -180,4 +205,12 @@ impl From<CString> for Vec<u8> {
     fn from(s: CString) -> Self {
         s.into_bytes()
     }
+}
+
+// TODO(Shaohua): Replace u8 with i8
+pub fn to_c_str_vec<S: AsRef<CStr>>(args: &[S]) -> Vec<*const u8> {
+    args.iter()
+        .map(|s| s.as_ref().as_ptr())
+        .chain(once(ptr::null()))
+        .collect()
 }
