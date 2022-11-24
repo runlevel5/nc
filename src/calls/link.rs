@@ -25,9 +25,9 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn link<P: AsRef<Path>>(old_filename: P, new_filename: P) -> Result<(), Errno> {
-    let old_filename = CString::new(old_filename.as_ref());
+    let old_filename = PathBuf::new(old_filename);
     let old_filename_ptr = old_filename.as_ptr() as usize;
-    let new_filename = CString::new(new_filename.as_ref());
+    let new_filename = PathBuf::new(new_filename);
     let new_filename_ptr = new_filename.as_ptr() as usize;
     syscall2(SYS_LINK, old_filename_ptr, new_filename_ptr).map(drop)
 }

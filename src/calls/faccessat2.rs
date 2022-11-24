@@ -13,7 +13,7 @@ pub unsafe fn faccessat2<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     let flags = flags as usize;

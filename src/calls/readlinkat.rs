@@ -24,7 +24,7 @@ pub unsafe fn readlinkat<P: AsRef<Path>>(
     buf_len: size_t,
 ) -> Result<ssize_t, Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let buf_ptr = buf.as_mut_ptr() as usize;
     syscall4(SYS_READLINKAT, dirfd, filename_ptr, buf_ptr, buf_len).map(|ret| ret as ssize_t)

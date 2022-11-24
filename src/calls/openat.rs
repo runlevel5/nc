@@ -17,7 +17,7 @@ pub unsafe fn openat<P: AsRef<Path>>(
     mode: mode_t,
 ) -> Result<i32, Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flags = flags as usize;
     let mode = mode as usize;

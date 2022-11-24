@@ -39,9 +39,9 @@ pub unsafe fn getxattr<P: AsRef<Path>>(
     value: usize,
     size: size_t,
 ) -> Result<ssize_t, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall4(SYS_GETXATTR, filename_ptr, name_ptr, value, size).map(|ret| ret as ssize_t)
 }

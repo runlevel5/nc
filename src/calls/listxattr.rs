@@ -36,7 +36,7 @@ pub unsafe fn listxattr<P: AsRef<Path>>(
     list: usize,
     size: size_t,
 ) -> Result<ssize_t, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall3(SYS_LISTXATTR, filename_ptr, list, size).map(|ret| ret as ssize_t)
 }

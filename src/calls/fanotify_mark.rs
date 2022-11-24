@@ -10,7 +10,7 @@ pub unsafe fn fanotify_mark<P: AsRef<Path>>(
     let flags = flags as usize;
     let mask = mask as usize;
     let fd = fd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall5(
         SYS_FANOTIFY_MARK,

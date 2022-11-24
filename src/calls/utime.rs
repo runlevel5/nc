@@ -19,7 +19,7 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn utime<P: AsRef<Path>>(filename: P, times: &utimbuf_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let times_ptr = times as *const utimbuf_t as usize;
     syscall2(SYS_UTIME, filename_ptr, times_ptr).map(drop)

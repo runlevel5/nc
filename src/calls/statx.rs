@@ -18,7 +18,7 @@ pub unsafe fn statx<P: AsRef<Path>>(
     buf: &mut statx_t,
 ) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flags = flags as usize;
     let mask = mask as usize;

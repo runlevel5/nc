@@ -8,7 +8,7 @@ pub unsafe fn kexec_file_load<P: AsRef<Path>>(
     let kernel_fd = kernel_fd as usize;
     let initrd_fd = initrd_fd as usize;
     let cmdline_len = cmdline.as_ref().len();
-    let cmdline = CString::new(cmdline.as_ref());
+    let cmdline = PathBuf::new(cmdline);
     let cmdline_ptr = cmdline.as_ptr() as usize;
     syscall5(
         SYS_KEXEC_FILE_LOAD,

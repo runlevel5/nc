@@ -26,10 +26,10 @@ pub unsafe fn linkat<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let olddfd = olddfd as usize;
-    let oldfilename = CString::new(oldfilename.as_ref());
+    let oldfilename = PathBuf::new(oldfilename);
     let oldfilename_ptr = oldfilename.as_ptr() as usize;
     let newdfd = newdfd as usize;
-    let newfilename = CString::new(newfilename.as_ref());
+    let newfilename = PathBuf::new(newfilename);
     let newfilename_ptr = newfilename.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(

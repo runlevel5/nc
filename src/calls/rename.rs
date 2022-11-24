@@ -16,9 +16,9 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn rename<P: AsRef<Path>>(oldfilename: P, newfilename: P) -> Result<(), Errno> {
-    let oldfilename = CString::new(oldfilename.as_ref());
+    let oldfilename = PathBuf::new(oldfilename);
     let oldfilename_ptr = oldfilename.as_ptr() as usize;
-    let newfilename = CString::new(newfilename.as_ref());
+    let newfilename = PathBuf::new(newfilename);
     let newfilename_ptr = newfilename.as_ptr() as usize;
     syscall2(SYS_RENAME, oldfilename_ptr, newfilename_ptr).map(drop)
 }

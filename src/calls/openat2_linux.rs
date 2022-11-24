@@ -23,7 +23,7 @@ pub unsafe fn openat2<P: AsRef<Path>>(
     size: size_t,
 ) -> Result<i32, Errno> {
     let dirfd = dirfd as usize;
-    let pathname = CString::new(pathname.as_ref());
+    let pathname = PathBuf::new(pathname);
     let pathname_ptr = pathname.as_ptr() as usize;
     let how_ptr = how as *const open_how_t as usize;
     syscall4(SYS_OPENAT2, dirfd, pathname_ptr, how_ptr, size).map(|ret| ret as i32)

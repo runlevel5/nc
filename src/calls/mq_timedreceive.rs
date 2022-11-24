@@ -61,7 +61,7 @@ pub unsafe fn mq_timedreceive(
     abs_timeout: &timespec_t,
 ) -> Result<ssize_t, Errno> {
     let mqdes = mqdes as usize;
-    let msg = CString::new(msg);
+    let msg = PathBuf::new(msg);
     let msg_ptr = msg.as_ptr() as usize;
     let msg_prio = msg_prio as *mut u32 as usize;
     let abs_timeout_ptr = abs_timeout as *const timespec_t as usize;

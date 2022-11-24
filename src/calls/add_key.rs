@@ -6,9 +6,9 @@ pub unsafe fn add_key<P: AsRef<Path>>(
     plen: size_t,
     dest_keyring: key_serial_t,
 ) -> Result<key_serial_t, Errno> {
-    let type_ = CString::new(type_.as_ref());
+    let type_ = PathBuf::new(type_);
     let type_ptr = type_.as_ptr() as usize;
-    let description = CString::new(description.as_ref());
+    let description = PathBuf::new(description);
     let description_ptr = description.as_ptr() as usize;
     let dest_keyring = dest_keyring as usize;
     syscall5(

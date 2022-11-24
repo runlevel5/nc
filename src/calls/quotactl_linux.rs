@@ -6,7 +6,7 @@ pub unsafe fn quotactl<P: AsRef<Path>>(
     addr: usize,
 ) -> Result<(), Errno> {
     let cmd = cmd as usize;
-    let special = CString::new(special.as_ref());
+    let special = PathBuf::new(special);
     let special_ptr = special.as_ptr() as usize;
     let id = id as usize;
     syscall4(SYS_QUOTACTL, cmd, special_ptr, id, addr).map(drop)

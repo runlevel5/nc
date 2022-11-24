@@ -20,7 +20,7 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn mq_unlink<P: AsRef<Path>>(name: P) -> Result<(), Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall1(SYS_MQ_UNLINK, name_ptr).map(drop)
 }

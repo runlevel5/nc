@@ -40,7 +40,7 @@ pub unsafe fn fgetxattr<P: AsRef<Path>>(
     size: size_t,
 ) -> Result<ssize_t, Errno> {
     let fd = fd as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall4(SYS_FGETXATTR, fd, name_ptr, value, size).map(|ret| ret as ssize_t)
 }

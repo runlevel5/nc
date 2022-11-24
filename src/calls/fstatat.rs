@@ -16,7 +16,7 @@ pub unsafe fn fstatat<P: AsRef<Path>>(
     flag: i32,
 ) -> Result<(), Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let statbuf_ptr = statbuf as *mut stat_t as usize;
     let flag = flag as usize;

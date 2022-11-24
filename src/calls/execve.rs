@@ -16,7 +16,7 @@ pub unsafe fn execve<P: AsRef<Path>>(
     argv: &[&str],
     env: &[&str],
 ) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let argv_ptr = argv.as_ptr() as usize;
     let env_ptr = env.as_ptr() as usize;

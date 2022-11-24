@@ -34,7 +34,7 @@ pub unsafe fn fsetxattr<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let fd = fd as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(SYS_FSETXATTR, fd, name_ptr, value, size, flags).map(drop)

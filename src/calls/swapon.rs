@@ -9,7 +9,7 @@
 /// assert_eq!(ret, Err(nc::EPERM));
 /// ```
 pub unsafe fn swapon<P: AsRef<Path>>(filename: P, flags: i32) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flags = flags as usize;
     syscall2(SYS_SWAPON, filename_ptr, flags).map(drop)

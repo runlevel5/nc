@@ -13,10 +13,10 @@ pub unsafe fn move_mount<P: AsRef<Path>>(
     flags: u32,
 ) -> Result<i32, Errno> {
     let from_dfd = from_dfd as usize;
-    let from_pathname = CString::new(from_pathname.as_ref());
+    let from_pathname = PathBuf::new(from_pathname);
     let from_pathname_ptr = from_pathname.as_ptr() as usize;
     let to_dfd = to_dfd as usize;
-    let to_pathname = CString::new(to_pathname.as_ref());
+    let to_pathname = PathBuf::new(to_pathname);
     let to_pathname_ptr = to_pathname.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(

@@ -13,7 +13,7 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn unlink<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall1(SYS_UNLINK, filename_ptr).map(drop)
 }

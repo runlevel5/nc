@@ -11,9 +11,9 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn symlink<P: AsRef<Path>>(oldname: P, newname: P) -> Result<(), Errno> {
-    let oldname = CString::new(oldname.as_ref());
+    let oldname = PathBuf::new(oldname);
     let oldname_ptr = oldname.as_ptr() as usize;
-    let newname = CString::new(newname.as_ref());
+    let newname = PathBuf::new(newname);
     let newname_ptr = newname.as_ptr() as usize;
     syscall2(SYS_SYMLINK, oldname_ptr, newname_ptr).map(drop)
 }

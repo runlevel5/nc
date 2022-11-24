@@ -15,7 +15,7 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn truncate64<P: AsRef<Path>>(path: P, len: loff_t) -> Result<(), Errno> {
-    let path = CString::new(path.as_ref());
+    let path = PathBuf::new(path);
     let path_ptr = path.as_ptr() as usize;
     let len = len as usize;
     syscall2(SYS_TRUNCATE64, path_ptr, len).map(drop)

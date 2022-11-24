@@ -29,7 +29,7 @@
 /// ```
 pub unsafe fn fremovexattr<P: AsRef<Path>>(fd: i32, name: P) -> Result<(), Errno> {
     let fd = fd as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall2(SYS_FREMOVEXATTR, fd, name_ptr).map(drop)
 }

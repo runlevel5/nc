@@ -22,7 +22,7 @@ pub unsafe fn readlink<P: AsRef<Path>>(
     buf: &mut [u8],
     buf_len: size_t,
 ) -> Result<ssize_t, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let buf_ptr = buf.as_mut_ptr() as usize;
     syscall3(SYS_READLINK, filename_ptr, buf_ptr, buf_len).map(|ret| ret as ssize_t)

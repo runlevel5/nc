@@ -10,7 +10,7 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn mkdir<P: AsRef<Path>>(filename: P, mode: mode_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     syscall2(SYS_MKDIR, filename_ptr, mode).map(drop)

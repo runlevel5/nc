@@ -11,7 +11,7 @@
 /// assert!(statfs.f_bavail > 0);
 /// ```
 pub unsafe fn statfs<P: AsRef<Path>>(filename: P, buf: &mut statfs_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let buf_ptr = buf as *mut statfs_t as usize;
     syscall2(SYS_STATFS, filename_ptr, buf_ptr).map(drop)

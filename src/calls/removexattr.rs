@@ -28,9 +28,9 @@
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn removexattr<P: AsRef<Path>>(filename: P, name: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall2(SYS_REMOVEXATTR, filename_ptr, name_ptr).map(drop)
 }

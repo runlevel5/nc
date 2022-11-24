@@ -15,9 +15,9 @@ pub unsafe fn symlinkat<P: AsRef<Path>>(
     newdirfd: i32,
     newname: P,
 ) -> Result<(), Errno> {
-    let oldname = CString::new(oldname.as_ref());
+    let oldname = PathBuf::new(oldname);
     let oldname_ptr = oldname.as_ptr() as usize;
-    let newname = CString::new(newname.as_ref());
+    let newname = PathBuf::new(newname);
     let newname_ptr = newname.as_ptr() as usize;
     let newdirfd = newdirfd as usize;
     syscall3(SYS_SYMLINKAT, oldname_ptr, newdirfd, newname_ptr).map(drop)

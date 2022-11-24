@@ -32,7 +32,7 @@ pub unsafe fn utimensat<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let times_ptr = times.as_ptr() as usize;
     let flags = flags as usize;

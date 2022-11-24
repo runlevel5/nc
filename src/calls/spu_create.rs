@@ -5,7 +5,7 @@ pub unsafe fn spu_create<P: AsRef<Path>>(
     mode: umode_t,
     neighbor_fd: i32,
 ) -> Result<i32, Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     let mode = mode as usize;

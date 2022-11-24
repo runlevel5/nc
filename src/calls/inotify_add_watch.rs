@@ -19,7 +19,7 @@ pub unsafe fn inotify_add_watch<P: AsRef<Path>>(
     mask: u32,
 ) -> Result<i32, Errno> {
     let fd = fd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mask = mask as usize;
     syscall3(SYS_INOTIFY_ADD_WATCH, fd, filename_ptr, mask).map(|ret| ret as i32)

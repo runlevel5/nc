@@ -33,9 +33,9 @@ pub unsafe fn lsetxattr<P: AsRef<Path>>(
     size: size_t,
     flags: i32,
 ) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(SYS_LSETXATTR, filename_ptr, name_ptr, value, size, flags).map(drop)

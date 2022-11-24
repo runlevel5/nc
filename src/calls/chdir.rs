@@ -17,7 +17,7 @@
 /// assert_eq!(new_cwd, Ok(path));
 /// ```
 pub unsafe fn chdir<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall1(SYS_CHDIR, filename_ptr).map(drop)
 }

@@ -7,7 +7,7 @@ pub unsafe fn name_to_handle_at<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let handle_ptr = handle as *mut file_handle_t as usize;
     let mount_id_ptr = mount_id as *mut i32 as usize;

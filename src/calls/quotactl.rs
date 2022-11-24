@@ -5,7 +5,7 @@ pub unsafe fn quotactl<P: AsRef<Path>>(
     id: i32,
     addr: usize,
 ) -> Result<(), Errno> {
-    let path = CString::new(path.as_ref());
+    let path = PathBuf::new(path);
     let path_ptr = path.as_ptr() as usize;
     let cmd = cmd as usize;
     let id = id as usize;

@@ -29,7 +29,7 @@ pub unsafe fn fchownat<P: AsRef<Path>>(
     flag: i32,
 ) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let user = user as usize;
     let group = group as usize;
