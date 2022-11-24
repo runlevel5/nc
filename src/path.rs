@@ -8,42 +8,32 @@ use alloc::vec::Vec;
 use crate::c_str::CString;
 
 /// To fill the gap between path in rust and `*const char` in c.
-pub enum PathBuf<'a> {
-    WithoutNil(CString),
-    WithNil(&'a [u8]),
+pub struct PathBuf {
+    inner: CString,
 }
 
-impl<'a> PathBuf<'_> {
+impl PathBuf {
+    #[must_use]
     pub fn as_bytes_ptr(&self) -> usize {
-        match self {
-            Self::WithoutNil(cstr) => cstr.as_bytes_with_nul().as_ptr() as usize,
-            Self::WithNil(slice) => slice.as_ptr() as usize,
-        }
+        self.inner.as_bytes_with_nul().as_ptr() as usize
     }
 
     #[must_use]
+    #[inline]
     pub fn len(&self) -> usize {
-        match self {
-            Self::WithoutNil(cstr) => cstr.as_bytes_with_nul().len(),
-            Self::WithNil(slice) => slice.len(),
-        }
+        self.inner.as_bytes_with_nul().len()
     }
 
     #[must_use]
+    #[inline]
     pub fn is_empty(&self) -> bool {
-        match self {
-            Self::WithoutNil(cstr) => cstr.as_bytes_with_nul().is_empty(),
-            Self::WithNil(slice) => slice.is_empty(),
-        }
+        self.inner.as_bytes_with_nul().is_empty()
     }
 
     #[must_use]
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
-        match self {
-            Self::WithoutNil(cstr) => cstr.as_bytes_with_nul(),
-            Self::WithNil(slice) => slice,
-        }
+        self.inner.as_bytes_with_nul()
     }
 }
 
@@ -54,13 +44,14 @@ pub struct Path {
 
 impl Path {
     pub unsafe fn to_own(&self) -> PathBuf {
-        for c in &self.internal {
-            eprint!(":{}:", c);
-        }
         if self.internal.is_empty() || self.internal[self.len() - 1] != 0 {
-            PathBuf::WithoutNil(CString::from_vec_unchecked(self.internal.to_vec()))
+            PathBuf {
+                inner: CString::from_vec_unchecked(self.internal.to_vec()),
+            }
         } else {
-            PathBuf::WithNil(&self.internal)
+            PathBuf {
+                inner: CString::from_vec_with_nul_unchecked(self.internal.to_vec()),
+            }
         }
     }
 }
@@ -182,7 +173,7 @@ mod tests {
         let p: &Path = s.as_ref();
         unsafe {
             let buf: PathBuf = p.to_own();
-            assert_eq!(buf.len(), s.as_os_str().as_bytes().len());
+            assert_eq!(buf.len(), s.as_os_str().as_bytes().len() + 1);
         }
     }
 
@@ -193,7 +184,7 @@ mod tests {
         let p: &Path = s.as_ref();
         unsafe {
             let buf: PathBuf = p.to_own();
-            assert_eq!(buf.len(), s.as_os_str().as_bytes().len());
+            assert_eq!(buf.len(), s.as_os_str().as_bytes().len() + 1);
         }
     }
 
@@ -203,7 +194,7 @@ mod tests {
         let p: &Path = s.as_ref();
         unsafe {
             let buf: PathBuf = p.to_own();
-            assert_eq!(buf.len(), s.as_bytes().len());
+            assert_eq!(buf.len(), s.as_bytes().len() + 1);
         }
     }
 
@@ -214,7 +205,7 @@ mod tests {
         let p: &Path = s.as_ref();
         unsafe {
             let buf: PathBuf = p.to_own();
-            assert_eq!(buf.len(), s.as_bytes().len());
+            assert_eq!(buf.len(), s.as_bytes().len() + 1);
         }
     }
 }
