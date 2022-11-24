@@ -5,9 +5,63 @@
 use alloc::string::String;
 use alloc::vec::Vec;
 
+use crate::c_str::CString;
+
+/// To fill the gap between path in rust and `*const char` in c.
+///
+/// A enum type is used to reduce memory copy.
+pub enum PathBuf<'a> {
+    WithoutNil(CString),
+    WithNil(&'a [u8]),
+}
+
+impl<'a> PathBuf<'_> {
+    pub fn as_bytes_ptr(&self) -> usize {
+        match self {
+            Self::WithoutNil(cstr) => cstr.as_bytes_with_nul().as_ptr() as usize,
+            Self::WithNil(slice) => slice.as_ptr() as usize,
+        }
+    }
+
+    #[must_use]
+    pub fn len(&self) -> usize {
+        match self {
+            Self::WithoutNil(cstr) => cstr.as_bytes_with_nul().len(),
+            Self::WithNil(slice) => slice.len(),
+        }
+    }
+
+    #[must_use]
+    pub fn is_empty(&self) -> bool {
+        match self {
+            Self::WithoutNil(cstr) => cstr.as_bytes_with_nul().is_empty(),
+            Self::WithNil(slice) => slice.is_empty(),
+        }
+    }
+
+    #[must_use]
+    #[inline]
+    pub fn as_bytes(&self) -> &[u8] {
+        match self {
+            Self::WithoutNil(cstr) => cstr.as_bytes_with_nul(),
+            Self::WithNil(slice) => slice,
+        }
+    }
+}
+
 /// Reimplementation of `std::path::Path`.
 pub struct Path {
     internal: [u8],
+}
+
+impl Path {
+    pub unsafe fn to_own(&self) -> PathBuf {
+        if self.internal.is_empty() || self.internal[self.len() - 1] != 0 {
+            PathBuf::WithoutNil(CString::from_vec_unchecked(self.internal.to_vec()))
+        } else {
+            PathBuf::WithNil(&self.internal)
+        }
+    }
 }
 
 impl Path {

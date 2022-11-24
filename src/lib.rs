@@ -136,17 +136,9 @@ extern crate alloc;
 #[cfg(test)]
 extern crate std;
 
-#[cfg(not(feature = "std"))]
 pub mod c_str;
-#[cfg(not(feature = "std"))]
 pub mod path;
-
-#[cfg(feature = "std")]
-#[path = "std_c_str.rs"]
-pub mod c_str;
-#[cfg(feature = "std")]
-#[path = "std_path.rs"]
-pub mod path;
+//pub mod util;
 
 pub mod syscalls;
 pub use syscalls::Errno;
@@ -166,6 +158,9 @@ pub mod types;
 #[cfg(target_os = "netbsd")]
 #[path = "platform/netbsd-types/mod.rs"]
 pub mod types;
+
+// Re-export definitions
+pub use types::*;
 
 #[cfg(all(
     any(target_os = "linux", target_os = "android"),
@@ -226,8 +221,5 @@ mod platform;
 #[path = "platform/darwin-x86_64/mod.rs"]
 mod platform;
 
-pub mod util;
-
 // Re-export functions
 pub use platform::*;
-pub use types::*;
