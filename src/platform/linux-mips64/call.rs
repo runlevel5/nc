@@ -12,8 +12,8 @@
 
 extern crate alloc;
 
-use crate::c_str::CString;
-use crate::path::Path;
+//use crate::c_str::CStr;
+use crate::path::{Path, PathBuf};
 use crate::syscalls::*;
 use crate::sysno::*;
 use crate::types::*;
@@ -55,7 +55,7 @@ pub unsafe fn accept4(
 /// assert!(ret.is_err());
 /// ```
 pub unsafe fn access<P: AsRef<Path>>(filename: P, mode: i32) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     syscall2(SYS_ACCESS, filename_ptr, mode).map(drop)
@@ -78,7 +78,7 @@ pub unsafe fn access<P: AsRef<Path>>(filename: P, mode: i32) -> Result<(), Errno
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn acct<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall1(SYS_ACCT, filename_ptr).map(drop)
 }
@@ -91,9 +91,9 @@ pub unsafe fn add_key<P: AsRef<Path>>(
     plen: size_t,
     dest_keyring: key_serial_t,
 ) -> Result<key_serial_t, Errno> {
-    let type_ = CString::new(type_.as_ref());
+    let type_ = PathBuf::new(type_);
     let type_ptr = type_.as_ptr() as usize;
-    let description = CString::new(description.as_ref());
+    let description = PathBuf::new(description);
     let description_ptr = description.as_ptr() as usize;
     let dest_keyring = dest_keyring as usize;
     syscall5(
@@ -217,7 +217,7 @@ pub unsafe fn capset(hdrp: &mut cap_user_header_t, data: &cap_user_data_t) -> Re
 /// assert_eq!(new_cwd, Ok(path));
 /// ```
 pub unsafe fn chdir<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall1(SYS_CHDIR, filename_ptr).map(drop)
 }
@@ -246,7 +246,7 @@ pub unsafe fn chdir<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn chmod<P: AsRef<Path>>(filename: P, mode: mode_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     syscall2(SYS_CHMOD, filename_ptr, mode).map(drop)
@@ -270,7 +270,7 @@ pub unsafe fn chmod<P: AsRef<Path>>(filename: P, mode: mode_t) -> Result<(), Err
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn chown<P: AsRef<Path>>(filename: P, user: uid_t, group: gid_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let user = user as usize;
     let group = group as usize;
@@ -286,7 +286,7 @@ pub unsafe fn chown<P: AsRef<Path>>(filename: P, user: uid_t, group: gid_t) -> R
 /// assert_eq!(ret, Err(nc::EPERM));
 /// ```
 pub unsafe fn chroot<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall1(SYS_CHROOT, filename_ptr).map(drop)
 }
@@ -532,7 +532,7 @@ pub unsafe fn copy_file_range(
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn creat<P: AsRef<Path>>(filename: P, mode: mode_t) -> Result<i32, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     syscall2(SYS_CREAT, filename_ptr, mode).map(|ret| ret as i32)
@@ -540,7 +540,7 @@ pub unsafe fn creat<P: AsRef<Path>>(filename: P, mode: mode_t) -> Result<i32, Er
 
 /// Unlock a kernel module.
 pub unsafe fn delete_module<P: AsRef<Path>>(name: P, flags: i32) -> Result<(), Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     syscall2(SYS_DELETE_MODULE, name_ptr, flags).map(drop)
@@ -868,7 +868,7 @@ pub unsafe fn execve<P: AsRef<Path>>(
     argv: &[&str],
     env: &[&str],
 ) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let argv_ptr = argv.as_ptr() as usize;
     let env_ptr = env.as_ptr() as usize;
@@ -897,7 +897,7 @@ pub unsafe fn execveat<P: AsRef<Path>>(
 
     // FIXME(Shaohua): Convert into CString first.
     let fd = fd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let argv_ptr = argv.as_ptr() as usize;
     let env_ptr = env.as_ptr() as usize;
@@ -941,7 +941,7 @@ pub unsafe fn exit_group(status: i32) -> ! {
 /// ```
 pub unsafe fn faccessat<P: AsRef<Path>>(dfd: i32, filename: P, mode: i32) -> Result<(), Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     syscall3(SYS_FACCESSAT, dfd, filename_ptr, mode).map(drop)
@@ -962,7 +962,7 @@ pub unsafe fn faccessat2<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     let flags = flags as usize;
@@ -1033,7 +1033,7 @@ pub unsafe fn fanotify_mark<P: AsRef<Path>>(
     let flags = flags as usize;
     let mask = mask as usize;
     let fd = fd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall5(
         SYS_FANOTIFY_MARK,
@@ -1120,7 +1120,7 @@ pub unsafe fn fchmod(fd: i32, mode: mode_t) -> Result<(), Errno> {
 /// ```
 pub unsafe fn fchmodat<P: AsRef<Path>>(dirfd: i32, filename: P, mode: mode_t) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     syscall3(SYS_FCHMODAT, dirfd, filename_ptr, mode).map(drop)
@@ -1188,7 +1188,7 @@ pub unsafe fn fchownat<P: AsRef<Path>>(
     flag: i32,
 ) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let user = user as usize;
     let group = group as usize;
@@ -1285,7 +1285,7 @@ pub unsafe fn fgetxattr<P: AsRef<Path>>(
     size: size_t,
 ) -> Result<ssize_t, Errno> {
     let fd = fd as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall4(SYS_FGETXATTR, fd, name_ptr, value, size).map(|ret| ret as ssize_t)
 }
@@ -1297,7 +1297,7 @@ pub unsafe fn finit_module<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let fd = fd as usize;
-    let param_values = CString::new(param_values.as_ref());
+    let param_values = PathBuf::new(param_values);
     let param_values_ptr = param_values.as_ptr() as usize;
     let flags = flags as usize;
     syscall3(SYS_FINIT_MODULE, fd, param_values_ptr, flags).map(drop)
@@ -1414,7 +1414,7 @@ pub unsafe fn fork() -> Result<pid_t, Errno> {
 /// ```
 pub unsafe fn fremovexattr<P: AsRef<Path>>(fd: i32, name: P) -> Result<(), Errno> {
     let fd = fd as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall2(SYS_FREMOVEXATTR, fd, name_ptr).map(drop)
 }
@@ -1429,9 +1429,9 @@ pub unsafe fn fsconfig<P: AsRef<Path>>(
 ) -> Result<(), Errno> {
     let fd = fd as usize;
     let cmd = cmd as usize;
-    let key = CString::new(key.as_ref());
+    let key = PathBuf::new(key);
     let key_ptr = key.as_ptr() as usize;
-    let value = CString::new(value.as_ref());
+    let value = PathBuf::new(value);
     let value_ptr = value.as_ptr() as usize;
     let aux = aux as usize;
     syscall5(SYS_FSCONFIG, fd, cmd, key_ptr, value_ptr, aux).map(drop)
@@ -1473,7 +1473,7 @@ pub unsafe fn fsetxattr<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let fd = fd as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(SYS_FSETXATTR, fd, name_ptr, value, size, flags).map(drop)
@@ -1489,7 +1489,7 @@ pub unsafe fn fsmount(fs_fd: i32, flags: u32, attr_flags: u32) -> Result<i32, Er
 
 /// Open a filesystem by name so that it can be configured for mounting.
 pub unsafe fn fsopen<P: AsRef<Path>>(fs_name: P, flags: u32) -> Result<(), Errno> {
-    let fs_name = CString::new(fs_name.as_ref());
+    let fs_name = PathBuf::new(fs_name);
     let fs_name_ptr = fs_name.as_ptr() as usize;
     let flags = flags as usize;
     syscall2(SYS_FSOPEN, fs_name_ptr, flags).map(drop)
@@ -1498,7 +1498,7 @@ pub unsafe fn fsopen<P: AsRef<Path>>(fs_name: P, flags: u32) -> Result<(), Errno
 /// Pick a superblock into a context for reconfiguration.
 pub unsafe fn fspick<P: AsRef<Path>>(dfd: i32, path: P, flags: i32) -> Result<i32, Errno> {
     let dfd = dfd as usize;
-    let path = CString::new(path.as_ref());
+    let path = PathBuf::new(path);
     let path_ptr = path.as_ptr() as usize;
     let flags = flags as usize;
     syscall3(SYS_FSPICK, dfd, path_ptr, flags).map(|ret| ret as i32)
@@ -1657,7 +1657,7 @@ pub unsafe fn futimesat<P: AsRef<Path>>(
     times: &[timeval_t; 2],
 ) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let times_ptr = times.as_ptr() as usize;
     syscall3(SYS_FUTIMESAT, dirfd, filename_ptr, times_ptr).map(drop)
@@ -2242,9 +2242,9 @@ pub unsafe fn getxattr<P: AsRef<Path>>(
     value: usize,
     size: size_t,
 ) -> Result<ssize_t, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall4(SYS_GETXATTR, filename_ptr, name_ptr, value, size).map(|ret| ret as ssize_t)
 }
@@ -2281,7 +2281,7 @@ pub unsafe fn init_module<P: AsRef<Path>>(
     len: usize,
     param_values: P,
 ) -> Result<(), Errno> {
-    let param_values = CString::new(param_values.as_ref());
+    let param_values = PathBuf::new(param_values);
     let param_values_ptr = param_values.as_ptr() as usize;
     syscall3(SYS_INIT_MODULE, module_image, len, param_values_ptr).map(drop)
 }
@@ -2307,7 +2307,7 @@ pub unsafe fn inotify_add_watch<P: AsRef<Path>>(
     mask: u32,
 ) -> Result<i32, Errno> {
     let fd = fd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mask = mask as usize;
     syscall3(SYS_INOTIFY_ADD_WATCH, fd, filename_ptr, mask).map(|ret| ret as i32)
@@ -2703,7 +2703,7 @@ pub unsafe fn kill(pid: pid_t, signal: i32) -> Result<(), Errno> {
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn lchown<P: AsRef<Path>>(filename: P, user: uid_t, group: gid_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let user = user as usize;
     let group = group as usize;
@@ -2751,9 +2751,9 @@ pub unsafe fn lgetxattr<P: AsRef<Path>>(
     value: usize,
     size: size_t,
 ) -> Result<ssize_t, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall4(SYS_LGETXATTR, filename_ptr, name_ptr, value, size).map(|ret| ret as ssize_t)
 }
@@ -2785,9 +2785,9 @@ pub unsafe fn lgetxattr<P: AsRef<Path>>(
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn link<P: AsRef<Path>>(old_filename: P, new_filename: P) -> Result<(), Errno> {
-    let old_filename = CString::new(old_filename.as_ref());
+    let old_filename = PathBuf::new(old_filename);
     let old_filename_ptr = old_filename.as_ptr() as usize;
-    let new_filename = CString::new(new_filename.as_ref());
+    let new_filename = PathBuf::new(new_filename);
     let new_filename_ptr = new_filename.as_ptr() as usize;
     syscall2(SYS_LINK, old_filename_ptr, new_filename_ptr).map(drop)
 }
@@ -2820,10 +2820,10 @@ pub unsafe fn linkat<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let olddfd = olddfd as usize;
-    let oldfilename = CString::new(oldfilename.as_ref());
+    let oldfilename = PathBuf::new(oldfilename);
     let oldfilename_ptr = oldfilename.as_ptr() as usize;
     let newdfd = newdfd as usize;
-    let newfilename = CString::new(newfilename.as_ref());
+    let newfilename = PathBuf::new(newfilename);
     let newfilename_ptr = newfilename.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(
@@ -2882,7 +2882,7 @@ pub unsafe fn listxattr<P: AsRef<Path>>(
     list: usize,
     size: size_t,
 ) -> Result<ssize_t, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall3(SYS_LISTXATTR, filename_ptr, list, size).map(|ret| ret as ssize_t)
 }
@@ -2925,7 +2925,7 @@ pub unsafe fn llistxattr<P: AsRef<Path>>(
     list: usize,
     size: size_t,
 ) -> Result<ssize_t, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall3(SYS_LLISTXATTR, filename_ptr, list, size).map(|ret| ret as ssize_t)
 }
@@ -2968,9 +2968,9 @@ pub unsafe fn lookup_dcookie(cookie: u64, buf: &mut [u8]) -> Result<i32, Errno> 
 /// let ret = unsafe { nc::unlinkat(nc::AT_FDCWD, path, 0) };
 /// ```
 pub unsafe fn lremovexattr<P: AsRef<Path>>(filename: P, name: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall2(SYS_LREMOVEXATTR, filename_ptr, name_ptr).map(drop)
 }
@@ -3031,9 +3031,9 @@ pub unsafe fn lsetxattr<P: AsRef<Path>>(
     size: size_t,
     flags: i32,
 ) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(SYS_LSETXATTR, filename_ptr, name_ptr, value, size, flags).map(drop)
@@ -3052,7 +3052,7 @@ pub unsafe fn lsetxattr<P: AsRef<Path>>(
 /// assert_eq!((stat.st_mode & nc::S_IFMT), nc::S_IFREG);
 /// ```
 pub unsafe fn lstat<P: AsRef<Path>>(filename: P, statbuf: &mut stat_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let statbuf_ptr = statbuf as *mut stat_t as usize;
     syscall2(SYS_LSTAT, filename_ptr, statbuf_ptr).map(drop)
@@ -3141,7 +3141,7 @@ pub unsafe fn membarrier(cmd: i32, flags: i32) -> Result<i32, Errno> {
 
 /// Create an anonymous file.
 pub unsafe fn memfd_create<P: AsRef<Path>>(name: P, flags: u32) -> Result<i32, Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     syscall2(SYS_MEMFD_CREATE, name_ptr, flags).map(|ret| ret as i32)
@@ -3196,7 +3196,7 @@ pub unsafe fn mincore(start: usize, len: size_t, vec: *const u8) -> Result<(), E
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn mkdir<P: AsRef<Path>>(filename: P, mode: mode_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     syscall2(SYS_MKDIR, filename_ptr, mode).map(drop)
@@ -3215,7 +3215,7 @@ pub unsafe fn mkdir<P: AsRef<Path>>(filename: P, mode: mode_t) -> Result<(), Err
 /// ```
 pub unsafe fn mkdirat<P: AsRef<Path>>(dirfd: i32, filename: P, mode: mode_t) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     syscall3(SYS_MKDIRAT, dirfd, filename_ptr, mode).map(drop)
@@ -3234,7 +3234,7 @@ pub unsafe fn mkdirat<P: AsRef<Path>>(dirfd: i32, filename: P, mode: mode_t) -> 
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn mknod<P: AsRef<Path>>(filename: P, mode: mode_t, dev: dev_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     let dev = dev as usize;
@@ -3260,7 +3260,7 @@ pub unsafe fn mknodat<P: AsRef<Path>>(
     dev: dev_t,
 ) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let mode = mode as usize;
     let dev = dev as usize;
@@ -3391,11 +3391,11 @@ pub unsafe fn mount<P: AsRef<Path>>(
     flags: usize,
     data: usize,
 ) -> Result<(), Errno> {
-    let dev_name = CString::new(dev_name.as_ref());
+    let dev_name = PathBuf::new(dev_name);
     let dev_name_ptr = dev_name.as_ptr() as usize;
-    let dir_name = CString::new(dir_name.as_ref());
+    let dir_name = PathBuf::new(dir_name);
     let dir_name_ptr = dir_name.as_ptr() as usize;
-    let fs_type = CString::new(fs_type.as_ref());
+    let fs_type = PathBuf::new(fs_type);
     let fs_type_ptr = fs_type.as_ptr() as usize;
     syscall5(
         SYS_MOUNT,
@@ -3423,10 +3423,10 @@ pub unsafe fn move_mount<P: AsRef<Path>>(
     flags: u32,
 ) -> Result<i32, Errno> {
     let from_dfd = from_dfd as usize;
-    let from_pathname = CString::new(from_pathname.as_ref());
+    let from_pathname = PathBuf::new(from_pathname);
     let from_pathname_ptr = from_pathname.as_ptr() as usize;
     let to_dfd = to_dfd as usize;
-    let to_pathname = CString::new(to_pathname.as_ref());
+    let to_pathname = PathBuf::new(to_pathname);
     let to_pathname_ptr = to_pathname.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(
@@ -3570,7 +3570,7 @@ pub unsafe fn mq_open<P: AsRef<Path>>(
     mode: umode_t,
     attr: Option<&mut mq_attr_t>,
 ) -> Result<mqd_t, Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let oflag = oflag as usize;
     let mode = mode as usize;
@@ -3641,7 +3641,7 @@ pub unsafe fn mq_timedreceive(
     abs_timeout: &timespec_t,
 ) -> Result<ssize_t, Errno> {
     let mqdes = mqdes as usize;
-    let msg = CString::new(msg);
+    let msg = PathBuf::new(msg);
     let msg_ptr = msg.as_ptr() as usize;
     let msg_prio = msg_prio as *mut u32 as usize;
     let abs_timeout_ptr = abs_timeout as *const timespec_t as usize;
@@ -3703,7 +3703,7 @@ pub unsafe fn mq_timedsend(
     abs_timeout: &timespec_t,
 ) -> Result<(), Errno> {
     let mqdes = mqdes as usize;
-    let msg = CString::new(msg);
+    let msg = PathBuf::new(msg);
     let msg_ptr = msg.as_ptr() as usize;
     let msg_prio = msg_prio as usize;
     let abs_timeout_ptr = abs_timeout as *const timespec_t as usize;
@@ -3740,7 +3740,7 @@ pub unsafe fn mq_timedsend(
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn mq_unlink<P: AsRef<Path>>(name: P) -> Result<(), Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall1(SYS_MQ_UNLINK, name_ptr).map(drop)
 }
@@ -4058,7 +4058,7 @@ pub unsafe fn name_to_handle_at<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let handle_ptr = handle as *mut file_handle_t as usize;
     let mount_id_ptr = mount_id as *mut i32 as usize;
@@ -4110,7 +4110,7 @@ pub unsafe fn newfstatat<P: AsRef<Path>>(
     flag: i32,
 ) -> Result<(), Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let statbuf_ptr = statbuf as *mut stat_t as usize;
     let flag = flag as usize;
@@ -4130,7 +4130,7 @@ pub unsafe fn newfstatat<P: AsRef<Path>>(
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn open<P: AsRef<Path>>(filename: P, flags: i32, mode: mode_t) -> Result<i32, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flags = flags as usize;
     let mode = mode as usize;
@@ -4156,7 +4156,7 @@ pub unsafe fn openat<P: AsRef<Path>>(
     mode: mode_t,
 ) -> Result<i32, Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flags = flags as usize;
     let mode = mode as usize;
@@ -4188,7 +4188,7 @@ pub unsafe fn openat2<P: AsRef<Path>>(
     size: size_t,
 ) -> Result<i32, Errno> {
     let dirfd = dirfd as usize;
-    let pathname = CString::new(pathname.as_ref());
+    let pathname = PathBuf::new(pathname);
     let pathname_ptr = pathname.as_ptr() as usize;
     let how_ptr = how as *const open_how_t as usize;
     syscall4(SYS_OPENAT2, dirfd, pathname_ptr, how_ptr, size).map(|ret| ret as i32)
@@ -4208,7 +4208,7 @@ pub unsafe fn open_by_handle_at(
 
 pub unsafe fn open_tree<P: AsRef<Path>>(dfd: i32, filename: P, flags: u32) -> Result<i32, Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flags = flags as usize;
     syscall3(SYS_OPEN_TREE, dfd, filename_ptr, flags).map(|ret| ret as i32)
@@ -4489,9 +4489,9 @@ pub unsafe fn pipe2(pipefd: &mut [i32; 2], flags: i32) -> Result<(), Errno> {
 
 /// Change the root filesystem.
 pub unsafe fn pivot_root<P: AsRef<Path>>(new_root: P, put_old: P) -> Result<(), Errno> {
-    let new_root = CString::new(new_root.as_ref());
+    let new_root = PathBuf::new(new_root);
     let new_root_ptr = new_root.as_ptr() as usize;
-    let put_old = CString::new(put_old.as_ref());
+    let put_old = PathBuf::new(put_old);
     let put_old_ptr = put_old.as_ptr() as usize;
     syscall2(SYS_PIVOT_ROOT, new_root_ptr, put_old_ptr).map(drop)
 }
@@ -4918,7 +4918,7 @@ pub unsafe fn quotactl<P: AsRef<Path>>(
     addr: usize,
 ) -> Result<(), Errno> {
     let cmd = cmd as usize;
-    let special = CString::new(special.as_ref());
+    let special = PathBuf::new(special);
     let special_ptr = special.as_ptr() as usize;
     let id = id as usize;
     syscall4(SYS_QUOTACTL, cmd, special_ptr, id, addr).map(drop)
@@ -4989,7 +4989,7 @@ pub unsafe fn readlink<P: AsRef<Path>>(
     buf: &mut [u8],
     buf_len: size_t,
 ) -> Result<ssize_t, Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let buf_ptr = buf.as_mut_ptr() as usize;
     syscall3(SYS_READLINK, filename_ptr, buf_ptr, buf_len).map(|ret| ret as ssize_t)
@@ -5021,7 +5021,7 @@ pub unsafe fn readlinkat<P: AsRef<Path>>(
     buf_len: size_t,
 ) -> Result<ssize_t, Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let buf_ptr = buf.as_mut_ptr() as usize;
     syscall4(SYS_READLINKAT, dirfd, filename_ptr, buf_ptr, buf_len).map(|ret| ret as ssize_t)
@@ -5178,9 +5178,9 @@ pub unsafe fn remap_file_pages(
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn removexattr<P: AsRef<Path>>(filename: P, name: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     syscall2(SYS_REMOVEXATTR, filename_ptr, name_ptr).map(drop)
 }
@@ -5203,9 +5203,9 @@ pub unsafe fn removexattr<P: AsRef<Path>>(filename: P, name: P) -> Result<(), Er
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn rename<P: AsRef<Path>>(oldfilename: P, newfilename: P) -> Result<(), Errno> {
-    let oldfilename = CString::new(oldfilename.as_ref());
+    let oldfilename = PathBuf::new(oldfilename);
     let oldfilename_ptr = oldfilename.as_ptr() as usize;
-    let newfilename = CString::new(newfilename.as_ref());
+    let newfilename = PathBuf::new(newfilename);
     let newfilename_ptr = newfilename.as_ptr() as usize;
     syscall2(SYS_RENAME, oldfilename_ptr, newfilename_ptr).map(drop)
 }
@@ -5234,10 +5234,10 @@ pub unsafe fn renameat<P: AsRef<Path>>(
     newfilename: P,
 ) -> Result<(), Errno> {
     let olddfd = olddfd as usize;
-    let oldfilename = CString::new(oldfilename.as_ref());
+    let oldfilename = PathBuf::new(oldfilename);
     let oldfilename_ptr = oldfilename.as_ptr() as usize;
     let newdfd = newdfd as usize;
-    let newfilename = CString::new(newfilename.as_ref());
+    let newfilename = PathBuf::new(newfilename);
     let newfilename_ptr = newfilename.as_ptr() as usize;
     syscall4(
         SYS_RENAMEAT,
@@ -5275,10 +5275,10 @@ pub unsafe fn renameat2<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let olddfd = olddfd as usize;
-    let oldfilename = CString::new(oldfilename.as_ref());
+    let oldfilename = PathBuf::new(oldfilename);
     let oldfilename_ptr = oldfilename.as_ptr() as usize;
     let newdfd = newdfd as usize;
-    let newfilename = CString::new(newfilename.as_ref());
+    let newfilename = PathBuf::new(newfilename);
     let newfilename_ptr = newfilename.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(
@@ -5299,11 +5299,11 @@ pub unsafe fn request_key<P: AsRef<Path>>(
     callout_info: P,
     dest_keyring: key_serial_t,
 ) -> Result<key_serial_t, Errno> {
-    let type_ = CString::new(type_.as_ref());
+    let type_ = PathBuf::new(type_);
     let type_ptr = type_.as_ptr() as usize;
-    let description = CString::new(description.as_ref());
+    let description = PathBuf::new(description);
     let description_ptr = description.as_ptr() as usize;
-    let callout_info = CString::new(callout_info.as_ref());
+    let callout_info = PathBuf::new(callout_info);
     let callout_info_ptr = callout_info.as_ptr() as usize;
     let dest_keyring = dest_keyring as usize;
     syscall4(
@@ -5333,7 +5333,7 @@ pub unsafe fn restart_syscall() -> Result<i32, Errno> {
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn rmdir<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall1(SYS_RMDIR, filename_ptr).map(drop)
 }
@@ -5931,7 +5931,7 @@ pub unsafe fn sendto(
 /// assert_eq!(ret, Err(nc::EPERM));
 /// ```
 pub unsafe fn setdomainname<P: AsRef<Path>>(name: P) -> Result<(), Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let name_len = name.len();
     syscall2(SYS_SETDOMAINNAME, name_ptr, name_len).map(drop)
@@ -6008,7 +6008,7 @@ pub unsafe fn setgroups(group_list: &[gid_t]) -> Result<(), Errno> {
 /// assert_eq!(ret, Err(nc::EPERM));
 /// ```
 pub unsafe fn sethostname<P: AsRef<Path>>(name: P) -> Result<(), Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let name_len = name.len();
     syscall2(SYS_SETHOSTNAME, name_ptr, name_len).map(drop)
@@ -6307,9 +6307,9 @@ pub unsafe fn setxattr<P: AsRef<Path>>(
     size: size_t,
     flags: i32,
 ) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     syscall5(SYS_SETXATTR, filename_ptr, name_ptr, value, size, flags).map(drop)
@@ -6589,7 +6589,7 @@ pub unsafe fn splice(
 /// assert_eq!((stat.st_mode & nc::S_IFMT), nc::S_IFREG);
 /// ```
 pub unsafe fn stat<P: AsRef<Path>>(filename: P, statbuf: &mut stat_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let statbuf_ptr = statbuf as *mut stat_t as usize;
     syscall2(SYS_STAT, filename_ptr, statbuf_ptr).map(drop)
@@ -6608,7 +6608,7 @@ pub unsafe fn stat<P: AsRef<Path>>(filename: P, statbuf: &mut stat_t) -> Result<
 /// assert!(statfs.f_bavail > 0);
 /// ```
 pub unsafe fn statfs<P: AsRef<Path>>(filename: P, buf: &mut statfs_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let buf_ptr = buf as *mut statfs_t as usize;
     syscall2(SYS_STATFS, filename_ptr, buf_ptr).map(drop)
@@ -6634,7 +6634,7 @@ pub unsafe fn statx<P: AsRef<Path>>(
     buf: &mut statx_t,
 ) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flags = flags as usize;
     let mask = mask as usize;
@@ -6653,7 +6653,7 @@ pub unsafe fn statx<P: AsRef<Path>>(
 /// assert_eq!(ret, Err(nc::EPERM));
 /// ```
 pub unsafe fn swapoff<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall1(SYS_SWAPOFF, filename_ptr).map(drop)
 }
@@ -6669,7 +6669,7 @@ pub unsafe fn swapoff<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
 /// assert_eq!(ret, Err(nc::EPERM));
 /// ```
 pub unsafe fn swapon<P: AsRef<Path>>(filename: P, flags: i32) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flags = flags as usize;
     syscall2(SYS_SWAPON, filename_ptr, flags).map(drop)
@@ -6688,9 +6688,9 @@ pub unsafe fn swapon<P: AsRef<Path>>(filename: P, flags: i32) -> Result<(), Errn
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn symlink<P: AsRef<Path>>(oldname: P, newname: P) -> Result<(), Errno> {
-    let oldname = CString::new(oldname.as_ref());
+    let oldname = PathBuf::new(oldname);
     let oldname_ptr = oldname.as_ptr() as usize;
-    let newname = CString::new(newname.as_ref());
+    let newname = PathBuf::new(newname);
     let newname_ptr = newname.as_ptr() as usize;
     syscall2(SYS_SYMLINK, oldname_ptr, newname_ptr).map(drop)
 }
@@ -6712,9 +6712,9 @@ pub unsafe fn symlinkat<P: AsRef<Path>>(
     newdirfd: i32,
     newname: P,
 ) -> Result<(), Errno> {
-    let oldname = CString::new(oldname.as_ref());
+    let oldname = PathBuf::new(oldname);
     let oldname_ptr = oldname.as_ptr() as usize;
-    let newname = CString::new(newname.as_ref());
+    let newname = PathBuf::new(newname);
     let newname_ptr = newname.as_ptr() as usize;
     let newdirfd = newdirfd as usize;
     syscall3(SYS_SYMLINKAT, oldname_ptr, newdirfd, newname_ptr).map(drop)
@@ -7315,7 +7315,7 @@ pub unsafe fn tkill(tid: i32, sig: i32) -> Result<(), Errno> {
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn truncate<P: AsRef<Path>>(filename: P, length: off_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let length = length as usize;
     syscall2(SYS_TRUNCATE, filename_ptr, length).map(drop)
@@ -7364,7 +7364,7 @@ pub unsafe fn umask(mode: mode_t) -> Result<mode_t, Errno> {
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn umount2<P: AsRef<Path>>(name: P, flags: i32) -> Result<(), Errno> {
-    let name = CString::new(name.as_ref());
+    let name = PathBuf::new(name);
     let name_ptr = name.as_ptr() as usize;
     let flags = flags as usize;
     syscall2(SYS_UMOUNT2, name_ptr, flags).map(drop)
@@ -7401,7 +7401,7 @@ pub unsafe fn uname(buf: &mut utsname_t) -> Result<(), Errno> {
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn unlink<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     syscall1(SYS_UNLINK, filename_ptr).map(drop)
 }
@@ -7425,7 +7425,7 @@ pub unsafe fn unlink<P: AsRef<Path>>(filename: P) -> Result<(), Errno> {
 /// ```
 pub unsafe fn unlinkat<P: AsRef<Path>>(dfd: i32, filename: P, flag: i32) -> Result<(), Errno> {
     let dfd = dfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let flag = flag as usize;
     syscall3(SYS_UNLINKAT, dfd, filename_ptr, flag).map(drop)
@@ -7471,7 +7471,7 @@ pub unsafe fn ustat(dev: dev_t, ubuf: &mut ustat_t) -> Result<(), Errno> {
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn utime<P: AsRef<Path>>(filename: P, times: &utimbuf_t) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let times_ptr = times as *const utimbuf_t as usize;
     syscall2(SYS_UTIME, filename_ptr, times_ptr).map(drop)
@@ -7511,7 +7511,7 @@ pub unsafe fn utimensat<P: AsRef<Path>>(
     flags: i32,
 ) -> Result<(), Errno> {
     let dirfd = dirfd as usize;
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let times_ptr = times.as_ptr() as usize;
     let flags = flags as usize;
@@ -7545,7 +7545,7 @@ pub unsafe fn utimensat<P: AsRef<Path>>(
 /// assert!(ret.is_ok());
 /// ```
 pub unsafe fn utimes<P: AsRef<Path>>(filename: P, times: &[timeval_t; 2]) -> Result<(), Errno> {
-    let filename = CString::new(filename.as_ref());
+    let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
     let times_ptr = times.as_ptr() as usize;
     syscall2(SYS_UTIMES, filename_ptr, times_ptr).map(drop)
