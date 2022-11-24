@@ -8,8 +8,6 @@ use alloc::vec::Vec;
 use crate::c_str::CString;
 
 /// To fill the gap between path in rust and `*const char` in c.
-///
-/// A enum type is used to reduce memory copy.
 pub enum PathBuf<'a> {
     WithoutNil(CString),
     WithNil(&'a [u8]),
@@ -56,6 +54,9 @@ pub struct Path {
 
 impl Path {
     pub unsafe fn to_own(&self) -> PathBuf {
+        for c in &self.internal {
+            eprint!(":{}:", c);
+        }
         if self.internal.is_empty() || self.internal[self.len() - 1] != 0 {
             PathBuf::WithoutNil(CString::from_vec_unchecked(self.internal.to_vec()))
         } else {
@@ -118,27 +119,102 @@ mod with_std {
             Path::new(self.as_bytes())
         }
     }
+
     impl AsRef<Path> for Cow<'_, OsStr> {
         #[inline]
         fn as_ref(&self) -> &Path {
             Path::new(self.as_bytes())
         }
     }
+
     impl AsRef<Path> for OsString {
         #[inline]
         fn as_ref(&self) -> &Path {
             Path::new(self.as_bytes())
         }
     }
+
     impl AsRef<Path> for path::PathBuf {
         fn as_ref(&self) -> &Path {
             self.as_path().as_ref()
         }
     }
+
     impl AsRef<Path> for path::Path {
         #[inline]
         fn as_ref(&self) -> &Path {
             Path::new(self.as_os_str().as_bytes())
+        }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use std::ffi::{OsStr, OsString};
+    use std::os::unix::ffi::OsStrExt;
+    use std::path;
+
+    use super::{Path, PathBuf};
+
+    #[test]
+    fn test_str() {
+        let s = "hello";
+        let p: &Path = s.as_ref();
+        unsafe {
+            let buf: PathBuf = p.to_own();
+            assert_eq!(buf.len(), s.len() + 1);
+        }
+    }
+
+    #[test]
+    fn test_string() {
+        let s: String = "hello".to_string();
+        let p: &Path = s.as_ref();
+        unsafe {
+            let buf: PathBuf = p.to_own();
+            assert_eq!(buf.len(), s.len() + 1);
+        }
+    }
+
+    #[test]
+    fn test_path() {
+        let s = path::Path::new("hello");
+        let p: &Path = s.as_ref();
+        unsafe {
+            let buf: PathBuf = p.to_own();
+            assert_eq!(buf.len(), s.as_os_str().as_bytes().len());
+        }
+    }
+
+    #[test]
+    fn test_pathbuf() {
+        let mut s = path::PathBuf::new();
+        s.push("hello");
+        let p: &Path = s.as_ref();
+        unsafe {
+            let buf: PathBuf = p.to_own();
+            assert_eq!(buf.len(), s.as_os_str().as_bytes().len());
+        }
+    }
+
+    #[test]
+    fn test_os_str() {
+        let s = OsStr::new("hello");
+        let p: &Path = s.as_ref();
+        unsafe {
+            let buf: PathBuf = p.to_own();
+            assert_eq!(buf.len(), s.as_bytes().len());
+        }
+    }
+
+    #[test]
+    fn test_os_string() {
+        let mut s = OsString::new();
+        s.push("hello");
+        let p: &Path = s.as_ref();
+        unsafe {
+            let buf: PathBuf = p.to_own();
+            assert_eq!(buf.len(), s.as_bytes().len());
         }
     }
 }
