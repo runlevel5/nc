@@ -138,7 +138,7 @@ extern crate std;
 
 pub mod c_str;
 pub mod path;
-//pub mod util;
+pub mod util;
 
 pub mod syscalls;
 pub use syscalls::Errno;

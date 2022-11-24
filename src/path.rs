@@ -3,7 +3,6 @@
 // in the LICENSE file.
 
 use alloc::string::String;
-use alloc::vec::Vec;
 
 use crate::c_str::CString;
 
@@ -13,9 +12,8 @@ pub struct PathBuf {
 }
 
 impl PathBuf {
-    #[must_use]
-    pub fn as_bytes_ptr(&self) -> usize {
-        self.inner.as_bytes_with_nul().as_ptr() as usize
+    pub unsafe fn new<P: AsRef<Path>>(p: P) -> Self {
+        p.as_ref().to_own()
     }
 
     #[must_use]
@@ -34,6 +32,16 @@ impl PathBuf {
     #[inline]
     pub fn as_bytes(&self) -> &[u8] {
         self.inner.as_bytes_with_nul()
+    }
+
+    #[must_use]
+    pub fn as_ptr(&self) -> *const u8 {
+        self.as_bytes().as_ptr()
+    }
+
+    #[must_use]
+    pub fn as_bytes_ptr(&self) -> usize {
+        self.inner.as_bytes_with_nul().as_ptr() as usize
     }
 }
 
@@ -89,9 +97,10 @@ impl AsRef<Path> for String {
     }
 }
 
-impl From<&Path> for Vec<u8> {
-    fn from(path: &Path) -> Self {
-        path.internal.to_vec()
+impl AsRef<Path> for [u8] {
+    #[inline]
+    fn as_ref(&self) -> &Path {
+        Path::new(self)
     }
 }
 
