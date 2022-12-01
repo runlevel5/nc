@@ -12,7 +12,7 @@
 
 extern crate alloc;
 
-use crate::c_str::{to_c_str_vec, CStr};
+use crate::c_str::{CStr, CStringList};
 use crate::path::{Path, PathBuf};
 use crate::syscalls::*;
 use crate::sysno::*;
@@ -869,8 +869,8 @@ pub unsafe fn execve<P: AsRef<Path>, S: AsRef<CStr>>(
 ) -> Result<(), Errno> {
     let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let argv_ptr = to_c_str_vec(argv).as_ptr() as usize;
-    let env_ptr = to_c_str_vec(env).as_ptr() as usize;
+    let argv_ptr = CStringList::new(argv).as_bytes_ptr();
+    let env_ptr = CStringList::new(env).as_bytes_ptr();
     syscall3(SYS_EXECVE, filename_ptr, argv_ptr, env_ptr).map(drop)
 }
 
@@ -896,8 +896,8 @@ pub unsafe fn execveat<P: AsRef<Path>, S: AsRef<CStr>>(
     let fd = fd as usize;
     let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let argv_ptr = to_c_str_vec(argv).as_ptr() as usize;
-    let env_ptr = to_c_str_vec(env).as_ptr() as usize;
+    let argv_ptr = CStringList::new(argv).as_bytes_ptr();
+    let env_ptr = CStringList::new(env).as_bytes_ptr();
     let flags = flags as usize;
     syscall5(SYS_EXECVEAT, fd, filename_ptr, argv_ptr, env_ptr, flags).map(drop)
 }

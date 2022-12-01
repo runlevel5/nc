@@ -12,7 +12,6 @@ use alloc::boxed::Box;
 use alloc::vec::Vec;
 use core::fmt;
 use core::fmt::Write;
-use core::iter::once;
 use core::mem;
 use core::ops;
 use core::ptr;
@@ -26,6 +25,10 @@ pub struct CStr {
 }
 
 impl CString {
+    pub fn from_cstr(s: &CStr) -> Self {
+        Self::new(s.inner.to_vec())
+    }
+
     pub fn new<T: Into<Vec<u8>>>(t: T) -> Self {
         let mut v = t.into();
         v.reserve_exact(1);
@@ -137,9 +140,18 @@ impl CString {
             inner: v.into_boxed_slice(),
         }
     }
+
+    pub fn as_ptr(&self) -> *const u8 {
+        self.inner.as_ptr()
+    }
 }
 
 impl CStr {
+    #[inline]
+    pub fn new<S: AsRef<[u8]> + ?Sized>(s: &S) -> &Self {
+        unsafe { &*(s.as_ref() as *const [u8] as *const Self) }
+    }
+
     #[must_use]
     pub const fn as_ptr(&self) -> *const u8 {
         self.inner.as_ptr()
@@ -163,6 +175,27 @@ impl CStr {
     // NOTE(Shaohua): const unsafe feature is not available in rustc 1.46 stable.
     pub fn to_bytes_with_nul(&self) -> &[u8] {
         unsafe { &*(&self.inner as *const [u8]) }
+    }
+}
+
+impl AsRef<CStr> for str {
+    #[inline]
+    fn as_ref(&self) -> &CStr {
+        CStr::new(self)
+    }
+}
+
+impl AsRef<CStr> for String {
+    #[inline]
+    fn as_ref(&self) -> &CStr {
+        CStr::new(self)
+    }
+}
+
+impl AsRef<CStr> for [u8] {
+    #[inline]
+    fn as_ref(&self) -> &CStr {
+        CStr::new(self)
     }
 }
 
@@ -207,10 +240,36 @@ impl From<CString> for Vec<u8> {
     }
 }
 
-// TODO(Shaohua): Replace u8 with i8
-pub fn to_c_str_vec<S: AsRef<CStr>>(args: &[S]) -> Vec<*const u8> {
-    args.iter()
-        .map(|s| s.as_ref().as_ptr())
-        .chain(once(ptr::null()))
-        .collect()
+#[repr(C)]
+pub struct CStringList {
+    args: Vec<CString>,
+    argv: Vec<*const u8>,
+}
+
+impl CStringList {
+    pub fn as_bytes_ptr(&self) -> usize {
+        self.argv.as_ptr() as usize
+    }
+
+    pub fn push(&mut self, item: CString) {
+        let l = self.argv.len();
+        self.argv[l - 1] = item.as_ptr();
+        self.argv.push(ptr::null());
+        self.args.push(item);
+    }
+
+    pub fn as_ptr(&self) -> *const *const u8 {
+        self.argv.as_ptr()
+    }
+
+    pub fn new<S: AsRef<CStr>>(args: &[S]) -> Self {
+        let args: Vec<CString> = args
+            .iter()
+            .map(|s| CString::from_cstr(s.as_ref()))
+            .collect();
+        let mut argv: Vec<*const u8> = args.iter().map(|s| s.as_ptr()).collect();
+        argv.push(ptr::null());
+
+        Self { args, argv }
+    }
 }
