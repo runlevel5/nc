@@ -12,7 +12,7 @@
 
 extern crate alloc;
 
-use crate::c_str::{CStr, CStringList};
+use crate::c_str::{CStr, CStringArray};
 use crate::path::{Path, PathBuf};
 use crate::syscalls::*;
 use crate::sysno::*;

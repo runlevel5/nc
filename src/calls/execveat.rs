@@ -20,8 +20,8 @@ pub unsafe fn execveat<P: AsRef<Path>, S: AsRef<CStr>>(
     let fd = fd as usize;
     let filename = PathBuf::new(filename);
     let filename_ptr = filename.as_ptr() as usize;
-    let argv_ptr = CStringList::new(argv).as_bytes_ptr();
-    let env_ptr = CStringList::new(env).as_bytes_ptr();
+    let argv_ptr = CStringArray::new(argv).as_bytes_ptr();
+    let env_ptr = CStringArray::new(env).as_bytes_ptr();
     let flags = flags as usize;
     syscall5(SYS_EXECVEAT, fd, filename_ptr, argv_ptr, env_ptr, flags).map(drop)
 }
