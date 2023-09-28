@@ -15,9 +15,6 @@ keywords = ["syscall", "linux"]
 categories = ["os", "no-std", "external-ffi-bindings"]
 rust-version = "1.56.0"
 
-[build-dependencies]
-cc = "1.0.83"
-
 [features]
 default = ["std"]
 
