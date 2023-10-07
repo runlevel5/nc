@@ -9,22 +9,57 @@ use std::io;
 use std::path::Path;
 use std::process::Command;
 
+fn guest_cc_flags(target: &str) -> Vec<&'static str> {
+    println!("target: {target}");
+    let mut args = Vec::new();
+
+    if target.contains("i686") || target.contains("i586") {
+        args.push("-m32");
+    } else if target == "x86_64-unknown-linux-gnux32" {
+        args.push("-mx32");
+    } else if target.contains("x86_64") || target.contains("powerpc64") {
+        // x86_64-unknown-linux-gnu
+        // powerpc64-unknown-linux-gnu
+        // powerpc64le-unknown-linux-gnu
+        args.push("-m64");
+    } else if (target.starts_with("armv7") || target.starts_with("thumbv7"))
+        && (target.contains("-linux-") || target.contains("-kmc-solid_"))
+    {
+        // armv7 targets get to use armv7 instructions
+        args.push("-march=armv7-a");
+
+        if target.ends_with("eabihf") {
+            // lowest common denominator FPU
+            args.push("-mfpu=vfpv3-d16");
+        }
+    } else if target.contains("neon") {
+        args.push("-mfpu=neon-vfpv4");
+    } else if target.starts_with("arm-unknown-linux-") {
+        // For us arm == armv6 by default
+        args.push("-march=armv6");
+        //cmd.arg("-marm");
+        if target.ends_with("hf") {
+            args.push("-mfpu=vfp");
+        } else {
+            args.push("-mfloat-abi=soft");
+        }
+    }
+
+    args
+}
+
 fn build_syscalls() -> Result<(), Box<dyn Error>> {
     let out_dir = env::var("OUT_DIR")?;
+    let target = env::var("TARGET")?;
     let target_arch = env::var("CARGO_CFG_TARGET_ARCH")?;
     let syscall_file = format!("src/syscalls/syscall_{}.c", target_arch);
     let obj_file = format!("{}/syscall.o", out_dir);
 
-    if target.contains("i686") || target.contains("i586") {
-        cmd.args.push("-m32".into());
-    } else if target == "x86_64-unknown-linux-gnux32" {
-        cmd.args.push("-mx32".into());
-    } else if target.contains("x86_64") || target.contains("powerpc64") {
-        cmd.args.push("-m64".into());
-    }
-    let s = Command::new("cc")
-        .args(&[&syscall_file, "-m32", "-c", "-fPIC", "-o", &obj_file])
-        .status()?;
+    let mut cmd = Command::new("cc");
+    let flags = guest_cc_flags(&target);
+    cmd.args(&[&syscall_file, "-c", "-fPIC", "-o", &obj_file])
+        .args(&flags);
+    let s = cmd.status()?;
     if !s.success() {
         return Err(Box::new(io::Error::new(
             io::ErrorKind::Other,
